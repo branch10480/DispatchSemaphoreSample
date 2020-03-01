@@ -13,22 +13,22 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        DispatchQueue.global(qos: .userInitiated).async {
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
             let semaphore = DispatchSemaphore(value: 0)
-            DispatchQueue.main.async {
-                self.showAlert(title: "alert1", message: "message") {
-                    semaphore.signal()
-                }
-            }
-            semaphore.wait()
-
-            DispatchQueue.main.async {
-                self.showAlert(title: "alert2", message: "message") {
-                    semaphore.signal()
-                }
-            }
-            semaphore.wait()
+            self.process(semaphore: semaphore, title: "Alert1", message: "This is Alert1.")
+            self.process(semaphore: semaphore, title: "Alert2", message: "This is Alert2.")
+            self.process(semaphore: semaphore, title: "Alert3", message: "This is Alert3.")
         }
+    }
+    
+    private func process(semaphore: DispatchSemaphore, title: String, message: String) {
+        DispatchQueue.main.async {
+            self.showAlert(title: title, message: message) {
+                semaphore.signal()
+            }
+        }
+        semaphore.wait()
     }
     
     private func showAlert(title: String, message: String, completion: @escaping ()->Void) {
